@@ -1,4 +1,5 @@
 import { Textract } from "aws-sdk";
+import React from "react";
 
 export type TableData = {
   formulaName: string;
@@ -12,7 +13,9 @@ export type TableData = {
 export function processDataToJsx(
   data: TableData[],
   selectedYear: string,
-  setSelectedYear: (year: string) => void
+  setSelectedYear: (year: string) => void,
+  hoveredItem: TableData | null,
+  setHoveredItem: (item: TableData | null) => void
 ) {
   // Group data by year and entity type (if there are different entity types)
   const dataGroupedByYearAndType = data?.reduce((acc, item) => {
@@ -52,7 +55,7 @@ export function processDataToJsx(
             <li key={yearType} className="mr-2">
               <button
                 onClick={() => setSelectedYear(yearType)}
-                style={selectedYear === yearType ? { color: "#009879" } : {}}
+                style={selectedYear === yearType ? { color: "#3b82f6" } : {}}
                 className={`inline-block p-4 rounded-t-lg ${
                   selectedYear === yearType
                     ? "dark:bg-gray-800 dark:text-blue-500 bg-gray-100"
@@ -79,19 +82,23 @@ export function processDataToJsx(
               {dataGroupedByYearAndType[selectedYear]
                 ? dataGroupedByYearAndType[selectedYear].map((item, index) => {
                     let calculation = item.formula;
-
                     const processedCalculation =
                       evaluateCalculation(calculation);
                     const isMismatch =
                       processedCalculation !== item.resultInStatement;
+                    const isHovered = hoveredItem === item;
                     return (
                       <tr
                         key={index}
                         style={{
                           backgroundColor: isMismatch
                             ? "rgba(255, 0, 0, 0.2)"
+                            : isHovered
+                            ? "rgba(0, 255, 0, 0.2)"
                             : "",
                         }}
+                        onMouseEnter={() => setHoveredItem(item)}
+                        onMouseLeave={() => setHoveredItem(null)}
                       >
                         <td>{item.formulaName}</td>
                         <td>{item.formula}</td>
@@ -109,124 +116,127 @@ export function processDataToJsx(
   );
   return jsxContent;
 }
-
 export function renderTextractGrid(
   blocks: Textract.DetectDocumentTextResponse["Blocks"],
   containerWidth: number,
   containerHeight: number,
-  tableData: TableData[]
+  tableData: TableData[],
+  tableBounds: { top: number; left: number; width: number; height: number },
+  hoveredItem: TableData | null,
+  setHoveredItem: (item: TableData | null) => void
 ) {
   const tableBlocks = blocks?.filter((block) => block.BlockType === "CELL");
-
-  // Calculate scale factors
-  const scaleX = containerWidth / 1;
-  const scaleY = containerHeight / 1;
-
-  if (!tableBlocks) return;
-
-  const lines = groupBlocksByCells(tableBlocks);
   const filteredWordBlocks = blocks?.filter(
     (block) => block.BlockType === "WORD"
   );
 
+  if (!tableBlocks || tableBlocks.length === 0) {
+    console.warn("No table blocks found in Textract data");
+    return null;
+  }
+
   return (
     <div
-      className="textract-grid"
-      style={{ width: containerWidth, height: containerHeight }}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: containerWidth,
+        height: containerHeight,
+        pointerEvents: "none",
+      }}
     >
-      {lines.map((line: Textract.Block[], lineIndex: number) => (
-        <div className="line" key={lineIndex}>
-          {line.map((block: Textract.Block, blockIndex: number) => {
-            const wordDescription = block.Relationships?.[0]?.Ids?.map(
-              (id: string) => {
-                const wordBlock = filteredWordBlocks?.find(
-                  (wordBlock) => wordBlock.Id === id
-                );
-                return wordBlock?.Text;
-              }
-            )?.join(" ");
-            const getAllCellsInRow = lines.filter((line: Textract.Block[]) => {
-              return line[0].RowIndex === block.RowIndex;
-            });
+      {tableBlocks.map((block, blockIndex) => {
+        const geometry = block.Geometry?.BoundingBox;
+        if (!geometry) {
+          console.warn(`Block at index ${blockIndex} has no geometry`);
+          return null;
+        }
 
-            const getAllWordsInRow = getAllCellsInRow?.reduce(
-              (acc: string[], line: Textract.Block[]) => {
-                acc.push(
-                  ...line.map((block: Textract.Block) => {
-                    const wordDescription = block.Relationships?.[0]?.Ids?.map(
-                      (id: string) => {
-                        const wordBlock = filteredWordBlocks?.find(
-                          (wordBlock) => wordBlock.Id === id
-                        );
-                        return wordBlock?.Text;
-                      }
-                    )?.join(" ");
-                    return wordDescription ?? "";
-                  })
-                );
-                return acc;
-              },
-              []
-            );
+        const adjustedGeometry = {
+          Left: (geometry.Left! - tableBounds.left) / tableBounds.width,
+          Top: (geometry.Top! - tableBounds.top) / tableBounds.height,
+          Width: geometry.Width! / tableBounds.width,
+          Height: geometry.Height! / tableBounds.height,
+        };
 
-            const getTotalTableData = tableData?.find((data) => {
-              const isEmptyRowName = !getAllWordsInRow[0];
-              const isRowNameMatch = data?.rowName?.includes(
-                getAllWordsInRow[0]
-              );
+        const wordDescription = block.Relationships?.[0]?.Ids?.map(
+          (id) =>
+            filteredWordBlocks?.find((wordBlock) => wordBlock.Id === id)?.Text
+        )
+          .filter(Boolean)
+          .join(" ");
 
-              const isNumberMatch = wordDescription
-                ?.replace(
-                  /\(\-?([\d,]+)\)/g,
-                  (match: string, number: string) =>
-                    `-${number.replace(/,/g, "")}`
-                )
-                ?.replace(/,/g, "")
-                ?.includes(data?.resultInStatement?.toString());
+        const matchingTableData = tableData?.find((data) => {
+          const isNumberMatch = wordDescription
+            ?.replace(
+              /\(\-?([\d,]+)\)/g,
+              (match: string, number: string) => `-${number.replace(/,/g, "")}`
+            )
+            ?.replace(/,/g, "")
+            ?.includes(data?.resultInStatement?.toString());
 
-              return (
-                (isEmptyRowName && isNumberMatch) ||
-                (isRowNameMatch && isNumberMatch)
-              );
-            });
+          return isNumberMatch;
+        });
 
-            let calculatedTotal, isValidTotal;
-            if (getTotalTableData) {
-              calculatedTotal = evaluateCalculation(getTotalTableData?.formula);
-              isValidTotal =
-                calculatedTotal === getTotalTableData?.resultInStatement;
+        let isValidTotal = false;
+        if (matchingTableData) {
+          const calculatedTotal = evaluateCalculation(
+            matchingTableData?.formula
+          );
+          isValidTotal =
+            calculatedTotal === matchingTableData?.resultInStatement;
+        }
+
+        const isHovered = hoveredItem === matchingTableData;
+
+        let backgroundColor = "rgba(108,122,137,0.05)";
+        let borderColor = "gray";
+
+        if (matchingTableData) {
+          if (isValidTotal) {
+            backgroundColor = isHovered
+              ? "rgba(0, 255, 0, 0.3)"
+              : "rgba(0, 255, 0, 0.1)";
+            borderColor = "green";
+          } else {
+            backgroundColor = isHovered
+              ? "rgba(255, 0, 0, 0.3)"
+              : "rgba(255, 0, 0, 0.1)";
+            borderColor = "red";
+          }
+        } else if (isHovered) {
+          backgroundColor = "rgba(0, 0, 255, 0.1)";
+        }
+
+        const style: React.CSSProperties = {
+          position: "absolute",
+          left: `${adjustedGeometry.Left * containerWidth}px`,
+          top: `${adjustedGeometry.Top * containerHeight}px`,
+          width: `${adjustedGeometry.Width * containerWidth}px`,
+          height: `${adjustedGeometry.Height * containerHeight}px`,
+          backgroundColor,
+          border: `1px solid ${borderColor}`,
+          overflow: "hidden",
+          pointerEvents: "auto",
+          cursor: "pointer",
+        };
+
+        return (
+          <div
+            key={blockIndex}
+            style={style}
+            title={wordDescription}
+            onMouseEnter={() =>
+              matchingTableData && setHoveredItem(matchingTableData)
             }
-
-            return (
-              <div
-                className="text-block"
-                key={blockIndex}
-                style={{
-                  position: "absolute",
-                  left: `${block?.Geometry?.BoundingBox?.Left ?? 0 * scaleX}px`,
-                  top: `${block?.Geometry?.BoundingBox?.Top ?? 0 * scaleY}px`,
-                  width: `${
-                    block?.Geometry?.BoundingBox?.Width ?? 0 * scaleX
-                  }px`,
-                  height: `${
-                    block?.Geometry?.BoundingBox?.Height ?? 0 * scaleY
-                  }px`,
-                  backgroundColor: "rgba(108,122,137,0.05)",
-                  border: !getTotalTableData
-                    ? "1px solid gray"
-                    : isValidTotal
-                    ? "2px solid green"
-                    : "2px solid red",
-                }}
-              ></div>
-            );
-          })}
-        </div>
-      ))}
+            onMouseLeave={() => setHoveredItem(null)}
+          />
+        );
+      })}
     </div>
   );
 }
-
 function evaluateCalculation(calculation: string) {
   try {
     calculation = calculation.replace(
