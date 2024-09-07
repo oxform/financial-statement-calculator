@@ -1,0 +1,107 @@
+/* src/styles.css */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Global Modern Table Styling */
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    // margin: 25px 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border-radius: 6px;
+    font-size: 16px;
+    overflow: hidden;
+
+    // remove border radius for top left and top right of table
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+  
+  thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+  }
+  
+  th,
+  td {
+    padding: 12px 15px;
+  }
+  
+  tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+  
+  tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+  }
+  
+  tbody tr:last-child {
+    border-bottom: 2px solid #000000;
+  }
+
+  .spinner-default {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .imagePreviewUrl {
+    max-width: 100%; 
+    object-fit: contain; 
+    display: block; 
+    margin: auto; 
+    margin-bottom: 16px;
+    border: 1px solid black; 
+  }
+
+  /* Responsive design */
+  @media screen and (max-width: 600px) {
+    table {
+      border: 0;
+    }
+    
+    table caption {
+      font-size: 1.3em;
+    }
+    
+    table thead {
+      border: none;
+      clip: rect(0 0 0 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+    }
+    
+    table tr {
+      border-bottom: 3px solid #ddd;
+      display: block;
+      margin-bottom: .625em;
+    }
+    
+    table td {
+      border-bottom: 1px solid #ddd;
+      display: block;
+      font-size: .8em;
+      text-align: right;
+    }
+    
+    table td::before {
+      content: attr(data-label);
+      float: left;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    table td:last-child {
+      border-bottom: 0;
+    }
+  }
