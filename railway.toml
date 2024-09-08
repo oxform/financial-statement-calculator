@@ -15,4 +15,3 @@ healthcheckTimeout = 100
 static
 ]
 directory = "financial-statement-calculator-app/build"
-```
