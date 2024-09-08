@@ -114,7 +114,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {!isLoading && !error && htmlContent && (
         <div
           ref={tableContainerRef}
-          className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow overflow-auto max-h-[calc(100vh-200px)]"
+          className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow  max-h-[calc(100vh-200px)]"
         >
           {htmlContent}
         </div>
