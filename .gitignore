@@ -4,6 +4,7 @@
 /node_modules
 /financial-statement-calculator-app/node_modules
 /financial-statement-calculator-api/node_modules
+/financial-statement-calculator-app/build
 /.pnp
 .pnp.js
 
