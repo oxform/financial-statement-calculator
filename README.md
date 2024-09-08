@@ -2,11 +2,11 @@
 
 This project is a full-stack application that calculates financial statements using AI. It consists of a React frontend and an Express.js backend, with integration to Anthropic's Claude AI and AWS Textract for validating and calculating financial documents.
 
-## 🌐 Live Application
+## Live Application
 
 You can access the live application here: [Financial Statement Calculator](https://financial-statement-calculator-production.up.railway.app/)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 financial-statement-calculator/
@@ -16,14 +16,14 @@ financial-statement-calculator/
 └── railway.json                          # Railway deployment configuration
 ```
 
-## 🚀 Prerequisites
+## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18.x recommended)
 - npm (comes with Node.js)
 - An [Anthropic API key](https://www.anthropic.com/)
 - [AWS credentials](https://aws.amazon.com/) with access to Textract
 
-## 🛠️ Setup
+## Setup
 
 1. Clone the repository:
    ```bash
@@ -44,7 +44,7 @@ financial-statement-calculator/
    AWS_SECRET_ACCESS_KEY=your_aws_secret_key
    ```
 
-## 💻 Running the Application Locally
+## Running the Application Locally
 
 1. Start the backend server:
    ```bash
@@ -60,7 +60,7 @@ financial-statement-calculator/
 
 3. Open your browser and navigate to `http://localhost:3000` to use the application.
 
-## 🌐 API Endpoints
+## API Endpoints
 
 - `POST /api/forward`: Processes financial statements using Claude AI and AWS Textract.
 - `GET /api/health`: Health check endpoint for the server.
