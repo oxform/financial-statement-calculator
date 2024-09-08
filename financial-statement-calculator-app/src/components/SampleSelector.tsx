@@ -98,7 +98,8 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
                     selectedType === type
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={isLoading}
                 >
                   {type}
                 </button>
@@ -121,7 +122,8 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
                   selectedSample.id === sample.id
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={isLoading}
               >
                 {sample.title}
               </button>
@@ -136,7 +138,11 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
           </label>
           <div className="flex flex-col">
             <div className="flex items-center">
-              <label className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded inline-flex items-center font-medium">
+              <label
+                className={`cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded inline-flex items-center font-medium ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
                 <FontAwesomeIcon icon={faUpload} className="mr-2" />
                 <span>Choose File</span>
                 <input
@@ -144,6 +150,7 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
                   className="hidden"
                   onChange={handleFileUpload}
                   accept=".png,.jpg,.jpeg"
+                  disabled={isLoading}
                 />
               </label>
               {uploadedFileName && (
@@ -180,13 +187,16 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
             id="model-select"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className={`block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isLoading}
           >
             {modelOptions.map((option) => (
               <option
                 key={option.value}
                 value={option.value}
-                disabled={option.disabled}
+                disabled={option.disabled || isLoading}
               >
                 {option.label}
               </option>
@@ -258,4 +268,5 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
     </div>
   );
 };
+
 export default SampleSelector;
