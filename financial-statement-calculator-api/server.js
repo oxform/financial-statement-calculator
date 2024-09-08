@@ -96,6 +96,10 @@ app.post("/api/forward", async (req, res) => {
   }
 });
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "Service is healthy" });
+});
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
