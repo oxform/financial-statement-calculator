@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Textract } from "aws-sdk";
 import { TableData, renderTextractGrid } from "../util";
+import ImageLoader from "./ImageLoader";
 
 interface ImagePreviewProps {
   image: string;
@@ -138,7 +139,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
           height: `${displayDimensions.height}px`,
         }}
       >
-        <img
+        <ImageLoader
           ref={imageRef}
           className="object-contain w-full h-full"
           src={image}
