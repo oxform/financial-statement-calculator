@@ -27,7 +27,7 @@ financial-statement-calculator/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/financial-statement-calculator.git
+   git clone https://github.com/oxform/financial-statement-calculator.git
    cd financial-statement-calculator
    ```
 
