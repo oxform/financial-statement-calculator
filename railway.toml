@@ -1,0 +1,18 @@
+[
+build
+]
+builder = "nixpacks"
+buildCommand = "cd financial-statement-calculator-app && npm install && npm run build && cd ../financial-statement-calculator-api && npm install"
+
+[
+deploy
+]
+startCommand = "cd financial-statement-calculator-api && npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+
+[
+static
+]
+directory = "financial-statement-calculator-app/build"
+```
