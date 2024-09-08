@@ -1,6 +1,6 @@
 # Financial Statement Calculator
 
-This project is a full-stack application that calculates financial statements using AI. It consists of a React frontend and an Express.js backend, with integration to Anthropic's Claude AI and AWS Textract for processing financial documents.
+This project is a full-stack application that calculates financial statements using AI. It consists of a React frontend and an Express.js backend, with integration to Anthropic's Claude AI and AWS Textract for validating and calculating financial documents.
 
 ## 📁 Project Structure
 
