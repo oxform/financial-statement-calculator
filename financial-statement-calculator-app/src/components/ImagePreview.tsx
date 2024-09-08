@@ -9,6 +9,7 @@ interface ImagePreviewProps {
   showResults: boolean;
   hoveredItem: TableData | null;
   setHoveredItem: (item: TableData | null) => void;
+  tableContainerRef: React.RefObject<HTMLDivElement>;
 }
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({
@@ -18,6 +19,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
   showResults,
   hoveredItem,
   setHoveredItem,
+  tableContainerRef,
 }) => {
   const [displayDimensions, setDisplayDimensions] = useState({
     width: 0,
@@ -35,10 +37,12 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
     height: 0,
   });
   const imageRef = useRef<HTMLImageElement>(null);
+  const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const updateDimensions = useCallback(() => {
     if (imageRef.current && containerRef.current && imageLoaded) {
+      const containerRect = containerRef.current.getBoundingClientRect();
       const imageRect = imageRef.current.getBoundingClientRect();
       const newDisplayDimensions = {
         width: imageRect.width,
@@ -50,6 +54,14 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
       };
       setDisplayDimensions(newDisplayDimensions);
       setNaturalDimensions(newNaturalDimensions);
+
+      // Calculate the scale factor
+      const scaleX = newDisplayDimensions.width / newNaturalDimensions.width;
+      const scaleY = newDisplayDimensions.height / newNaturalDimensions.height;
+      console.log("scaleX", scaleX, "scaleY", scaleY);
+      console.log("newDisplayDimensions", newDisplayDimensions);
+      console.log("newNaturalDimensions", newNaturalDimensions);
+      setScale(Math.min(scaleX, scaleY));
     }
   }, [imageLoaded]);
 
@@ -104,11 +116,11 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
   return (
     <div
       ref={containerRef}
-      className="md:w-1/2 border-r border-gray-200 dark:border-gray-700 relative"
+      className="md:w-1/2 border-r border-gray-200 dark:border-gray-700 relative h-[calc(100vh-100px)]"
     >
       <img
         ref={imageRef}
-        className="w-full object-contain"
+        className="object-contain max-h-[calc(100vh-100px)]"
         src={image}
         alt="Financial Statement"
         onLoad={handleImageLoad}
@@ -141,7 +153,8 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               data,
               tableBounds,
               hoveredItem,
-              setHoveredItem
+              setHoveredItem,
+              tableContainerRef
             )}
           </div>
         </>

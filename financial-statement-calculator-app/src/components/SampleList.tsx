@@ -33,16 +33,16 @@ const sampleData: SampleData = {
     },
     {
       id: "bs2",
-      title: "Balance Sheet Q2 2024",
-      image: "/api/placeholder/400/300",
-      description: "Quarterly balance sheet for Q2 2024.",
+      title: "Beach Balance Sheet UK 2019",
+      image: "samples/balance/beach-uk-2019.png",
+      description: "Annual balance sheet for Beach UK in 2019.",
     },
   ],
   "Profit and Loss": [
     {
       id: "pl1",
-      title: "P&L Statement 2023",
-      image: "/api/placeholder/400/300",
+      title: "Bowman Profit and Loss UK 2020",
+      image: "samples/profit/bowman-profit-2020.jpg",
       description: "Annual profit and loss statement for 2023.",
     },
     {
@@ -89,6 +89,7 @@ const SampleList: React.FC = () => {
     useProcessSample();
 
   const [htmlContent, setHtmlContent] = useState<JSX.Element | null>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (data) {
@@ -97,7 +98,8 @@ const SampleList: React.FC = () => {
         selectedYear,
         setSelectedYear,
         hoveredItem,
-        setHoveredItem
+        setHoveredItem,
+        tableContainerRef
       );
       setHtmlContent(jsxContent);
     }
@@ -111,6 +113,13 @@ const SampleList: React.FC = () => {
     );
     if (result) {
       setShowResults(true);
+    }
+  };
+
+  const handleHoveredItemChange = (item: TableData | null) => {
+    setHoveredItem(item);
+    if (item) {
+      setSelectedYear(item.year);
     }
   };
 
@@ -129,7 +138,8 @@ const SampleList: React.FC = () => {
             data={data}
             showResults={showResults}
             hoveredItem={hoveredItem}
-            setHoveredItem={setHoveredItem}
+            setHoveredItem={handleHoveredItemChange}
+            tableContainerRef={tableContainerRef}
           />
           <div className="md:w-1/2 p-6">
             {!showResults ? (
@@ -153,6 +163,9 @@ const SampleList: React.FC = () => {
                 isLoading={isLoading}
                 onBack={handleBackToSamples}
                 error={error}
+                tableContainerRef={tableContainerRef}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
               />
             )}
           </div>

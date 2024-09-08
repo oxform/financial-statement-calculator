@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEraser, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
@@ -15,6 +15,9 @@ interface ResultsViewProps {
   isLoading: boolean;
   onBack: () => void;
   error: string | null;
+  tableContainerRef: React.RefObject<HTMLDivElement>;
+  selectedYear: string;
+  setSelectedYear: (year: string) => void;
 }
 
 const ResultsView: React.FC<ResultsViewProps> = ({
@@ -23,7 +26,31 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   isLoading,
   onBack,
   error,
+  tableContainerRef,
+  selectedYear,
+  setSelectedYear,
 }) => {
+  const [years, setYears] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (htmlContent) {
+      // Extract years from htmlContent
+      const yearElements =
+        tableContainerRef.current?.querySelectorAll("button[data-year]");
+      if (yearElements) {
+        const extractedYears = Array.from(yearElements).map(
+          (el) => el.getAttribute("data-year") || ""
+        );
+        setYears(extractedYears);
+      }
+    }
+  }, [htmlContent, tableContainerRef]);
+
+  const handleYearClick = (year: string) => {
+    console.log("Changing year to:", year);
+    setSelectedYear(year);
+  };
+
   return (
     <div className="results-view">
       <button
@@ -37,6 +64,28 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       <h5 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
         Results for {selectedSample.title}
       </h5>
+
+      {!isLoading && !error && years.length > 0 && (
+        <div className="mb-4">
+          <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
+            {years.map((year) => (
+              <li key={year} className="mr-2">
+                <button
+                  onClick={() => handleYearClick(year)}
+                  className={`inline-block p-4 rounded-t-lg ${
+                    selectedYear === year
+                      ? "text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500"
+                      : "hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  }`}
+                  data-year={year}
+                >
+                  {year}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex justify-center items-center">
@@ -63,7 +112,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       )}
 
       {!isLoading && !error && htmlContent && (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow overflow-auto max-h-[calc(100vh-200px)]">
+        <div
+          ref={tableContainerRef}
+          className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow overflow-auto max-h-[calc(100vh-200px)]"
+        >
           {htmlContent}
         </div>
       )}

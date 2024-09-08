@@ -10,104 +10,109 @@ export type TableData = {
   entityType?: "Group" | "Company";
 };
 
+function scrollToTableRow(
+  tableContainerRef: React.RefObject<HTMLDivElement>,
+  rowIndex: number
+) {
+  if (tableContainerRef.current) {
+    const tableRows = tableContainerRef.current.querySelectorAll("tbody tr");
+    if (tableRows[rowIndex]) {
+      tableRows[rowIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }
+}
+
 export function processDataToJsx(
   data: TableData[],
   selectedYear: string,
   setSelectedYear: (year: string) => void,
   hoveredItem: TableData | null,
-  setHoveredItem: (item: TableData | null) => void
+  setHoveredItem: (item: TableData | null) => void,
+  tableContainerRef: React.RefObject<HTMLDivElement>
 ) {
-  // Group data by year and entity type (if there are different entity types)
-  const dataGroupedByYearAndType = data?.reduce((acc, item) => {
-    // Check if there are different entity types in the data
-    const differentEntities = data?.some(
-      (otherItem) => otherItem?.entityType !== item?.entityType
-    );
-
-    // Create a key based on the year and entity type (if different entities exist)
-    const key = differentEntities
-      ? `${item.year} (${item.entityType})`
-      : `${item.year}`;
-
-    // Initialize the array for this key if it doesn't exist
+  const dataGroupedByYearAndType = data.reduce((acc, item) => {
+    const key = `${item.year} ${
+      item.entityType ? `(${item.entityType})` : ""
+    }`.trim();
     if (!acc[key]) acc[key] = [];
-
     acc[key].push(item);
     return acc;
-  }, {} as Record<string, typeof data>);
+  }, {} as Record<string, TableData[]>);
 
-  // Set the first tab as selected if no year is selected yet
-  if (selectedYear === "" && Object.keys(dataGroupedByYearAndType).length > 0) {
-    setSelectedYear(Object.keys(dataGroupedByYearAndType)[0]);
+  const years = Object.keys(dataGroupedByYearAndType).sort((a, b) =>
+    b.localeCompare(a)
+  );
+
+  if (!selectedYear && years.length > 0) {
+    setSelectedYear(years[0]);
   }
 
   const jsxContent = (
     <>
       <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
-        {Object.keys(dataGroupedByYearAndType)
-          .sort((a, b) => {
-            // Extract year as number and compare
-            const yearA = parseInt(a.split(" ")[0], 10);
-            const yearB = parseInt(b.split(" ")[0], 10);
-            return yearB - yearA; // For descending order
-          })
-          .map((yearType) => (
-            <li key={yearType} className="mr-2">
-              <button
-                onClick={() => setSelectedYear(yearType)}
-                style={selectedYear === yearType ? { color: "#3b82f6" } : {}}
-                className={`inline-block p-4 rounded-t-lg ${
-                  selectedYear === yearType
-                    ? "dark:bg-gray-800 dark:text-blue-500 bg-gray-100"
-                    : "hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                }`}
-              >
-                {yearType}
-              </button>
-            </li>
-          ))}
+        {years.map((year) => (
+          <li key={year} className="mr-2">
+            <button
+              onClick={() => setSelectedYear(year)}
+              className={`inline-block p-4 rounded-t-lg ${
+                selectedYear === year
+                  ? "text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500"
+                  : "hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              }`}
+            >
+              {year}
+            </button>
+          </li>
+        ))}
       </ul>
       {selectedYear && (
-        <div>
-          <table>
-            <thead>
+        <div ref={tableContainerRef} style={{ overflowY: "auto" }}>
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th>Calculation Name</th>
-                <th>Calculation</th>
-                <th>Result in Financial Statement</th>
-                <th>Processed Calculation</th>
+                <th scope="col" className="px-6 py-3">
+                  Calculation Name
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Calculation
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Result in Financial Statement
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Processed Calculation
+                </th>
               </tr>
             </thead>
             <tbody>
-              {dataGroupedByYearAndType[selectedYear]
-                ? dataGroupedByYearAndType[selectedYear].map((item, index) => {
-                    let calculation = item.formula;
-                    const processedCalculation =
-                      evaluateCalculation(calculation);
-                    const isMismatch =
-                      processedCalculation !== item.resultInStatement;
-                    const isHovered = hoveredItem === item;
-                    return (
-                      <tr
-                        key={index}
-                        style={{
-                          backgroundColor: isMismatch
-                            ? "rgba(255, 0, 0, 0.2)"
-                            : isHovered
-                            ? "rgba(0, 255, 0, 0.2)"
-                            : "",
-                        }}
-                        onMouseEnter={() => setHoveredItem(item)}
-                        onMouseLeave={() => setHoveredItem(null)}
-                      >
-                        <td>{item.formulaName}</td>
-                        <td>{item.formula}</td>
-                        <td>{item.resultInStatement}</td>
-                        <td>{processedCalculation}</td>
-                      </tr>
-                    );
-                  })
-                : null}
+              {dataGroupedByYearAndType[selectedYear]?.map((item, index) => {
+                const processedCalculation = evaluateCalculation(item.formula);
+                const isMismatch =
+                  processedCalculation !== item.resultInStatement;
+                const isHovered = hoveredItem === item;
+                return (
+                  <tr
+                    key={index}
+                    className={`${
+                      isMismatch ? "bg-red-100 dark:bg-red-900" : ""
+                    } ${
+                      isHovered ? "bg-blue-100 dark:bg-blue-900" : ""
+                    } hover:bg-gray-50 dark:hover:bg-gray-600`}
+                    onMouseEnter={() => setHoveredItem(item)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <td className="px-6 py-4">
+                      {item.formulaName.replace("Calculation", "")}
+                    </td>
+                    <td className="px-6 py-4">{item.formula}</td>
+                    <td className="px-6 py-4">{item.resultInStatement}</td>
+                    <td className="px-6 py-4">{processedCalculation}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -117,19 +122,17 @@ export function processDataToJsx(
   return jsxContent;
 }
 export function renderTextractGrid(
-  blocks: Textract.DetectDocumentTextResponse["Blocks"],
+  blocks: Textract.BlockList,
   containerWidth: number,
   containerHeight: number,
   tableData: TableData[],
   tableBounds: { top: number; left: number; width: number; height: number },
   hoveredItem: TableData | null,
-  setHoveredItem: (item: TableData | null) => void
+  setHoveredItem: (item: TableData | null) => void,
+  tableContainerRef: React.RefObject<HTMLDivElement>
 ) {
   const tableBlocks = blocks?.filter((block) => block.BlockType === "CELL");
-  const filteredWordBlocks = blocks?.filter(
-    (block) => block.BlockType === "WORD"
-  );
-
+  const wordBlocks = blocks.filter((block) => block.BlockType === "WORD");
   if (!tableBlocks || tableBlocks.length === 0) {
     console.warn("No table blocks found in Textract data");
     return null;
@@ -161,31 +164,38 @@ export function renderTextractGrid(
         };
 
         const wordDescription = block.Relationships?.[0]?.Ids?.map(
-          (id) =>
-            filteredWordBlocks?.find((wordBlock) => wordBlock.Id === id)?.Text
+          (id) => wordBlocks?.find((wordBlock) => wordBlock.Id === id)?.Text
         )
           .filter(Boolean)
           .join(" ");
 
-        const matchingTableData = tableData?.find((data) => {
-          const isNumberMatch = wordDescription
-            ?.replace(
-              /\(\-?([\d,]+)\)/g,
-              (match: string, number: string) => `-${number.replace(/,/g, "")}`
-            )
-            ?.replace(/,/g, "")
-            ?.includes(data?.resultInStatement?.toString());
+        const lineDescription = findLineDescription(block, wordBlocks);
 
-          return isNumberMatch;
+        const matchingTableData = tableData?.find((data) => {
+          const isNumberMatch =
+            extractNumber(wordDescription || "") ===
+            extractNumber(data?.resultInStatement?.toString());
+
+          return (
+            (isNumberMatch &&
+              lineDescription.includes(data?.rowName) &&
+              data?.rowName !== "") ||
+            (isNumberMatch &&
+              !data?.rowName &&
+              !/[A-Za-z]/.test(lineDescription))
+          );
         });
 
         let isValidTotal = false;
         if (matchingTableData) {
           const calculatedTotal = evaluateCalculation(
-            matchingTableData?.formula
+            matchingTableData.formula
           );
-          isValidTotal =
-            calculatedTotal === matchingTableData?.resultInStatement;
+          const calculatedNumber = extractNumber(calculatedTotal.toString());
+          const statementNumber = extractNumber(
+            matchingTableData.resultInStatement.toString()
+          );
+          isValidTotal = calculatedNumber === statementNumber;
         }
 
         const isHovered = hoveredItem === matchingTableData;
@@ -227,9 +237,26 @@ export function renderTextractGrid(
             key={blockIndex}
             style={style}
             title={wordDescription}
-            onMouseEnter={() =>
-              matchingTableData && setHoveredItem(matchingTableData)
-            }
+            onMouseEnter={() => {
+              if (matchingTableData) {
+                console.log(
+                  "isValidTotal",
+                  isValidTotal,
+                  "matchingTableData",
+                  matchingTableData,
+                  "block",
+                  block,
+                  "lineDescription",
+                  lineDescription
+                );
+                console.log("waaaa", extractNumber("$ (9,072,936)"));
+                setHoveredItem(matchingTableData);
+                const rowIndex = tableData.findIndex(
+                  (item) => item === matchingTableData
+                );
+                scrollToTableRow(tableContainerRef, rowIndex);
+              }
+            }}
             onMouseLeave={() => setHoveredItem(null)}
           />
         );
@@ -252,17 +279,56 @@ function evaluateCalculation(calculation: string) {
   }
 }
 
-function groupBlocksByCells(blocks: Textract.Block[]) {
-  return blocks.reduce((acc: Textract.Block[][], block) => {
-    if (block.BlockType === "CELL") {
-      acc.push([block]);
-    } else {
-      if (acc.length === 0 || !Array.isArray(acc[acc.length - 1])) {
-        acc.push([block]);
-      } else {
-        acc[acc.length - 1].push(block);
-      }
-    }
-    return acc;
-  }, []);
+function extractNumber(input: string): number {
+  // Remove all characters except numbers, minus sign, and brackets
+  const cleaned = input.replace(/[^\d()-]/g, "");
+
+  // Check if the number is wrapped in brackets or starts with a minus sign
+  const isNegative = cleaned.startsWith("(") || cleaned.startsWith("-");
+
+  // Remove brackets and minus sign
+  const numberString = cleaned.replace(/[()-]/g, "");
+
+  // Convert to number and apply negative sign if necessary
+  const number = parseFloat(numberString);
+  return isNegative ? -number : number;
+}
+function findLineDescription(
+  cellBlock: Textract.Block,
+  wordBlocks: Textract.Block[]
+): string {
+  if (!cellBlock.Geometry?.BoundingBox) {
+    return "";
+  }
+
+  const cellTop = cellBlock.Geometry.BoundingBox.Top || 0;
+  const cellHeight = cellBlock.Geometry.BoundingBox.Height || 0;
+  const cellCenter = cellTop + cellHeight / 2;
+  const threshold = cellHeight / 2;
+
+  // Find all words that intersect with the cell's vertical center (within the threshold)
+  const wordsIntersectingCell = wordBlocks.filter((word) => {
+    if (!word.Geometry?.BoundingBox) return false;
+    const wordTop = word.Geometry.BoundingBox.Top || 0;
+    const wordHeight = word.Geometry.BoundingBox.Height || 0;
+    const wordBottom = wordTop + wordHeight;
+    return (
+      wordTop <= cellCenter + threshold && wordBottom >= cellCenter - threshold
+    );
+  });
+
+  console.log(
+    "wordsIntersectingCell",
+    wordsIntersectingCell.map((word) => word.Text).join(" ")
+  );
+
+  // Sort words by their x-coordinate
+  wordsIntersectingCell.sort((a, b) => {
+    const aX = a.Geometry?.BoundingBox?.Left || 0;
+    const bX = b.Geometry?.BoundingBox?.Left || 0;
+    return aX - bX;
+  });
+
+  // Combine all words to form the line description
+  return wordsIntersectingCell.map((word) => word.Text).join(" ");
 }

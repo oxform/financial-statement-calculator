@@ -36,8 +36,8 @@ tbody tr {
   border-bottom: 1px solid #dddddd;
 }
 
-tbody tr:nth-child(even) {
-  background-color: #f3f3f3;
+tbody tr:hover {
+  background-color: rgb(219, 234, 254) !important;
 }
 
 tbody tr:last-child {
