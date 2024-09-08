@@ -4,6 +4,7 @@ const axios = require("axios");
 const cors = require("cors");
 const AWS = require("aws-sdk");
 require("dotenv").config();
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -110,3 +111,16 @@ app.use(
     path.join(__dirname, "..", "financial-statement-calculator-app", "build")
   )
 );
+
+// For any other GET request, send the React app's index.html
+app.get("*", (req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "..",
+      "financial-statement-calculator-app",
+      "build",
+      "index.html"
+    )
+  );
+});
