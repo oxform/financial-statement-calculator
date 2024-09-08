@@ -85,8 +85,14 @@ const SampleList: React.FC = () => {
 
   const [hoveredItem, setHoveredItem] = useState<TableData | null>(null);
 
-  const { processSample, isLoading, data, textractResponse, error } =
-    useProcessSample();
+  const {
+    processSample,
+    isLoading,
+    data,
+    textractResponse,
+    error,
+    resetProcessState,
+  } = useProcessSample();
 
   const [htmlContent, setHtmlContent] = useState<JSX.Element | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -126,6 +132,9 @@ const SampleList: React.FC = () => {
   const handleBackToSamples = () => {
     setShowResults(false);
     setHtmlContent(null);
+    setSelectedYear("");
+    setHoveredItem(null);
+    resetProcessState();
   };
 
   return (

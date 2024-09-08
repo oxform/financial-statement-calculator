@@ -10,6 +10,13 @@ const useProcessSample = () => {
   >(null);
   const [error, setError] = useState<string | null>(null);
 
+  const resetProcessState = () => {
+    setIsLoading(false);
+    setData([]);
+    setTextractResponse(null);
+    setError(null);
+  };
+
   const processSample = async (
     image: string,
     statementType: string,
@@ -64,7 +71,14 @@ const useProcessSample = () => {
     }
   };
 
-  return { processSample, isLoading, data, textractResponse, error };
+  return {
+    processSample,
+    isLoading,
+    data,
+    textractResponse,
+    error,
+    resetProcessState,
+  };
 };
 
 export default useProcessSample;
