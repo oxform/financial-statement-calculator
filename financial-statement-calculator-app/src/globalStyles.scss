@@ -40,6 +40,14 @@ tbody tr:hover {
   background-color: rgb(219, 234, 254) !important;
 }
 
+tbody tr:nth-child(even) {
+  background-color: #3b83f609;
+}
+
+tr.important-row {
+  background-color: #3b83f63d !important;
+}
+
 tbody tr:last-child {
   border-bottom: 2px solid #000000;
 }
