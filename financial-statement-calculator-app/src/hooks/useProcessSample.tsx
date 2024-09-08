@@ -35,7 +35,7 @@ const useProcessSample = () => {
         reader.readAsDataURL(blob);
       });
 
-      const apiResponse = await fetch("http://localhost:5000/api/forward", {
+      const apiResponse = await fetch("/api/forward", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
