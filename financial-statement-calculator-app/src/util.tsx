@@ -50,66 +50,93 @@ export function processDataToJsx(
     setSelectedYear(years[0]);
   }
 
+  // Calculate validations for all years
+  const totalValidations = data.length;
+  const passedValidations = data.filter(
+    (item) => evaluateCalculation(item.formula) === item.resultInStatement
+  ).length;
+  const allPassed = passedValidations === totalValidations;
+
   const jsxContent = (
-    <>
-      <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
-        {years.map((year) => (
-          <li key={year} className="mr-2">
+    <div className="w-full max-w-7xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div
+          className="flex space-x-2 overflow-x-auto pb-2"
+          style={{ maxWidth: "60%" }}
+        >
+          {years.map((year) => (
             <button
+              key={year}
               onClick={() => setSelectedYear(year)}
-              className={`inline-block p-4 rounded-t-lg ${
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 selectedYear === year
-                  ? "text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500"
-                  : "hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {year}
             </button>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+        <div className={`text-sm font-medium`}>
+          {passedValidations}/{totalValidations} validations passed{" "}
+          {allPassed ? "✅" : "❌"}
+        </div>
+      </div>
       {selectedYear && (
-        <div ref={tableContainerRef} style={{ overflowY: "auto" }}>
+        <div
+          ref={tableContainerRef}
+          className="overflow-auto max-h-[calc(100vh-350px)] rounded-md border"
+        >
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3 w-[250px]">
                   Calculation Name
                 </th>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3 w-[300px]">
                   Calculation
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Result in Financial Statement
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Processed Calculation
+                  Result in Statement
                 </th>
               </tr>
             </thead>
             <tbody>
               {dataGroupedByYearAndType[selectedYear]?.map((item, index) => {
                 const processedCalculation = evaluateCalculation(item.formula);
-                const isMismatch =
-                  processedCalculation !== item.resultInStatement;
+                const isValid = processedCalculation === item.resultInStatement;
                 const isHovered = hoveredItem === item;
                 return (
                   <tr
                     key={index}
                     className={`${
-                      isMismatch ? "bg-red-100 dark:bg-red-900" : ""
+                      isValid ? "" : "bg-red-50 dark:bg-red-900/20"
                     } ${
-                      isHovered ? "bg-blue-100 dark:bg-blue-900" : ""
-                    } hover:bg-gray-50 dark:hover:bg-gray-600`}
+                      isHovered ? "important-row" : ""
+                    } transition-colors hover:bg-gray-50 dark:hover:bg-gray-600`}
                     onMouseEnter={() => setHoveredItem(item)}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
-                    <td className="px-6 py-4">
-                      {item.formulaName.replace("Calculation", "")}
+                    <td className="px-6 py-4 font-medium">
+                      {item.formulaName.replace(/Calculation|calculation/g, "")}
                     </td>
-                    <td className="px-6 py-4">{item.formula}</td>
-                    <td className="px-6 py-4">{item.resultInStatement}</td>
-                    <td className="px-6 py-4">{processedCalculation}</td>
+                    <td className="px-6 py-4 font-mono text-sm">
+                      {item.formula} ={" "}
+                      <span
+                        className="inline-block px-2 rounded-full text-black text-xs"
+                        style={{
+                          backgroundColor: isValid
+                            ? "rgba(0, 255, 0, 0.3)"
+                            : "rgba(255, 0, 0, 0.3)",
+                        }}
+                      >
+                        {processedCalculation}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-mono">
+                      {item.resultInStatement}
+                    </td>
                   </tr>
                 );
               })}
@@ -117,7 +144,7 @@ export function processDataToJsx(
           </table>
         </div>
       )}
-    </>
+    </div>
   );
   return jsxContent;
 }
