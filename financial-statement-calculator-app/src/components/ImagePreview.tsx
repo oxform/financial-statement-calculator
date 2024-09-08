@@ -43,24 +43,37 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
   const updateDimensions = useCallback(() => {
     if (imageRef.current && containerRef.current && imageLoaded) {
       const containerRect = containerRef.current.getBoundingClientRect();
-      const imageRect = imageRef.current.getBoundingClientRect();
+      const imgNaturalWidth = imageRef.current.naturalWidth;
+      const imgNaturalHeight = imageRef.current.naturalHeight;
+
+      let newWidth, newHeight;
+      const containerAspectRatio = containerRect.width / containerRect.height;
+      const imageAspectRatio = imgNaturalWidth / imgNaturalHeight;
+
+      if (containerAspectRatio > imageAspectRatio) {
+        // Container is wider than the image aspect ratio
+        newHeight = containerRect.height;
+        newWidth = newHeight * imageAspectRatio;
+      } else {
+        // Container is taller than the image aspect ratio
+        newWidth = containerRect.width;
+        newHeight = newWidth / imageAspectRatio;
+      }
+
       const newDisplayDimensions = {
-        width: imageRect.width,
-        height: imageRect.height,
+        width: newWidth,
+        height: newHeight,
       };
       const newNaturalDimensions = {
-        width: imageRef.current.naturalWidth,
-        height: imageRef.current.naturalHeight,
+        width: imgNaturalWidth,
+        height: imgNaturalHeight,
       };
       setDisplayDimensions(newDisplayDimensions);
       setNaturalDimensions(newNaturalDimensions);
 
       // Calculate the scale factor
-      const scaleX = newDisplayDimensions.width / newNaturalDimensions.width;
-      const scaleY = newDisplayDimensions.height / newNaturalDimensions.height;
-      console.log("scaleX", scaleX, "scaleY", scaleY);
-      console.log("newDisplayDimensions", newDisplayDimensions);
-      console.log("newNaturalDimensions", newNaturalDimensions);
+      const scaleX = newWidth / imgNaturalWidth;
+      const scaleY = newHeight / imgNaturalHeight;
       setScale(Math.min(scaleX, scaleY));
     }
   }, [imageLoaded]);
@@ -116,49 +129,57 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
   return (
     <div
       ref={containerRef}
-      className="md:w-1/2 border-r border-gray-200 dark:border-gray-700 relative h-[calc(100vh-100px)]"
+      className="md:w-1/2 border-r border-gray-200 dark:border-gray-700 relative h-[calc(100vh-100px)] flex items-center justify-center"
     >
-      <img
-        ref={imageRef}
-        className="object-contain max-h-[calc(100vh-100px)]"
-        src={image}
-        alt="Financial Statement"
-        onLoad={handleImageLoad}
-      />
-      {showResults && textractResponse && imageLoaded && (
-        <>
-          <div
-            className="absolute border-2 border-gray-700"
-            style={{
-              top: `${tableBounds.top * displayDimensions.height}px`,
-              left: `${tableBounds.left * displayDimensions.width}px`,
-              width: `${tableBounds.width * displayDimensions.width}px`,
-              height: `${tableBounds.height * displayDimensions.height}px`,
-            }}
-          />
-          <div
-            className="absolute"
-            style={{
-              top: `${tableBounds.top * displayDimensions.height}px`,
-              left: `${tableBounds.left * displayDimensions.width}px`,
-              width: `${tableBounds.width * displayDimensions.width}px`,
-              height: `${tableBounds.height * displayDimensions.height}px`,
-              overflow: "hidden",
-            }}
-          >
-            {renderTextractGrid(
-              textractResponse,
-              tableBounds.width * displayDimensions.width,
-              tableBounds.height * displayDimensions.height,
-              data,
-              tableBounds,
-              hoveredItem,
-              setHoveredItem,
-              tableContainerRef
-            )}
-          </div>
-        </>
-      )}
+      <div
+        style={{
+          position: "relative",
+          width: `${displayDimensions.width}px`,
+          height: `${displayDimensions.height}px`,
+        }}
+      >
+        <img
+          ref={imageRef}
+          className="object-contain w-full h-full"
+          src={image}
+          alt="Financial Statement"
+          onLoad={handleImageLoad}
+        />
+        {showResults && textractResponse && imageLoaded && (
+          <>
+            <div
+              className="absolute border-2 border-gray-700"
+              style={{
+                top: `${tableBounds.top * displayDimensions.height}px`,
+                left: `${tableBounds.left * displayDimensions.width}px`,
+                width: `${tableBounds.width * displayDimensions.width}px`,
+                height: `${tableBounds.height * displayDimensions.height}px`,
+              }}
+            />
+            <div
+              className="absolute"
+              style={{
+                top: `${tableBounds.top * displayDimensions.height}px`,
+                left: `${tableBounds.left * displayDimensions.width}px`,
+                width: `${tableBounds.width * displayDimensions.width}px`,
+                height: `${tableBounds.height * displayDimensions.height}px`,
+                overflow: "hidden",
+              }}
+            >
+              {renderTextractGrid(
+                textractResponse,
+                tableBounds.width * displayDimensions.width,
+                tableBounds.height * displayDimensions.height,
+                data,
+                tableBounds,
+                hoveredItem,
+                setHoveredItem,
+                tableContainerRef
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
