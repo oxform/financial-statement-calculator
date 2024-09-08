@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import {
+  faInfoCircle,
+  faSpinner,
+  faUpload,
+} from "@fortawesome/free-solid-svg-icons";
 
 type FinancialStatementType =
   | "Balance Sheet"
@@ -29,18 +33,20 @@ interface SampleSelectorProps {
   isMultiEntity: boolean;
   setIsMultiEntity: (isMulti: boolean) => void;
   onProcess: () => void;
+  onUpload: (file: File) => void;
   isLoading: boolean;
   sampleData: SampleData;
 }
 
 const modelOptions = [
   { value: "claude-3-5-sonnet-20240620", label: "Claude 3.5 Sonnet" },
-  { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
-  { value: "claude-3-sonnet-20240229", label: "Claude 3 Sonnet" },
-  { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
-  { value: "claude-2.1", label: "Claude 2.1" },
-  { value: "claude-2.0", label: "Claude 2.0" },
-  { value: "claude-instant-1.2", label: "Claude Instant 1.2" },
+  { value: "claude-3-opus-20240229", label: "Claude 3 Opus", disabled: true },
+  {
+    value: "claude-3-sonnet-20240229",
+    label: "Claude 3 Sonnet",
+    disabled: true,
+  },
+  { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku", disabled: true },
 ];
 
 const SampleSelector: React.FC<SampleSelectorProps> = ({
@@ -53,9 +59,20 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
   isMultiEntity,
   setIsMultiEntity,
   onProcess,
+  onUpload,
   isLoading,
   sampleData,
 }) => {
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFileName(file.name);
+      onUpload(file);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto">
@@ -112,6 +129,35 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
           </div>
         </div>
 
+        {/* Upload Button */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Upload Your Own Statement
+          </label>
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <label className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded inline-flex items-center font-medium">
+                <FontAwesomeIcon icon={faUpload} className="mr-2" />
+                <span>Choose File</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".png,.jpg,.jpeg"
+                />
+              </label>
+              {uploadedFileName && (
+                <span className="ml-3 text-sm text-gray-600">
+                  {uploadedFileName}
+                </span>
+              )}
+            </div>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Accepted file types: PNG, JPG, JPEG
+            </p>
+          </div>
+        </div>
+
         {/* Sample Details */}
         <div className="mb-5">
           <h5 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
@@ -137,7 +183,11 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
             className="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           >
             {modelOptions.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
                 {option.label}
               </option>
             ))}
@@ -145,20 +195,32 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
         </div>
 
         {/* Multi-entity Checkbox */}
-        <div className="flex items-center mb-5">
+        <div className="flex items-center mb-5 relative group">
           <input
             type="checkbox"
             id="multi-entity"
             checked={isMultiEntity}
             onChange={(e) => setIsMultiEntity(e.target.checked)}
-            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-offset-0 focus:ring-indigo-200 focus:ring-opacity-50"
+            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-offset-0 focus:ring-indigo-200 focus:ring-opacity-50 cursor-not-allowed opacity-50"
+            disabled
           />
           <label
             htmlFor="multi-entity"
-            className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
+            className="ml-2 block text-sm text-gray-400 dark:text-gray-500 cursor-not-allowed"
           >
             Multi-entity
           </label>
+          <FontAwesomeIcon
+            icon={faInfoCircle}
+            className="ml-2 text-gray-400 dark:text-gray-500 cursor-help"
+          />
+          <div className="absolute left-0 -bottom-24 w-64 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100 z-10">
+            <p className="font-semibold mb-1">Multi-entity Feature</p>
+            <p>
+              This feature is coming soon! It will allow analysis of financial
+              statements with multiple entities or subsidiaries.
+            </p>
+          </div>
         </div>
       </div>
 

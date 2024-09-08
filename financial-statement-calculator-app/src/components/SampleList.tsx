@@ -33,39 +33,47 @@ const sampleData: SampleData = {
     },
     {
       id: "bs2",
-      title: "Beach Balance Sheet UK 2019",
-      image: "samples/balance/beach-uk-2019.png",
-      description: "Annual balance sheet for Beach UK in 2019.",
+      title: "Amazon Balance Sheet 2021",
+      image: "samples/balance/amazon-balance-sheet-2021.jpg",
+      description:
+        "Annual balance sheet for Amazon Inc. in 2021. This financial statement has been modified with intentionally incorrect numbers for demonstration purposes.",
     },
   ],
   "Profit and Loss": [
     {
       id: "pl1",
-      title: "Bowman Profit and Loss UK 2020",
+      title: "Bowman P&L UK 2020",
       image: "samples/profit/bowman-profit-2020.jpg",
       description: "Annual profit and loss statement for 2023.",
     },
     {
       id: "pl2",
-      title: "P&L Statement Q1 2024",
-      image: "/api/placeholder/400/300",
-      description: "Quarterly profit and loss statement for Q1 2024.",
+      title: "Apple P&L 2017",
+      image: "samples/profit/apple-profit-2017.png",
+      description: "Annual profit and loss statement for Apple Inc. in 2017.",
+    },
+    {
+      id: "pl3",
+      title: "Apple P&L 2017-2024",
+      image: "samples/profit/apple-profit-2024.png",
+      description:
+        "Annual profit and loss statement for Apple Inc. from 2017 to 2024.",
     },
   ],
   "Cash Flow": [
     {
       id: "cf1",
-      title: "Cash Flow Statement 2023",
-      image: "/api/placeholder/400/300",
-      description: "Annual cash flow statement for 2023.",
+      title: "Microsoft Cash Flow 2001-2004",
+      image: "samples/cashflow/microsoft-2004.jpg",
+      description: "Cash flow statement for Microsoft Inc. from 2001 to 2004.",
     },
   ],
   "Changes in Equity": [
     {
       id: "ce1",
-      title: "Statement of Changes in Equity 2023",
-      image: "/api/placeholder/400/300",
-      description: "Annual statement of changes in equity for 2023.",
+      title: "Velton Changes in Equity 2020",
+      image: "samples/changesInEquity/velton-2020.png",
+      description: "Changes in equity statement for Velton Inc. in 2020.",
     },
   ],
 };
@@ -82,7 +90,7 @@ const SampleList: React.FC = () => {
   const [isMultiEntity, setIsMultiEntity] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("");
-
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [hoveredItem, setHoveredItem] = useState<TableData | null>(null);
 
   const {
@@ -122,6 +130,16 @@ const SampleList: React.FC = () => {
     }
   };
 
+  const handleFileUpload = (file: File) => {
+    setUploadedFile(file);
+    setSelectedSample({
+      id: "custom",
+      title: file.name,
+      image: URL.createObjectURL(file),
+      description: "Custom uploaded financial statement",
+    });
+  };
+
   const handleHoveredItemChange = (item: TableData | null) => {
     setHoveredItem(item);
     if (item) {
@@ -135,6 +153,7 @@ const SampleList: React.FC = () => {
     setSelectedYear("");
     setHoveredItem(null);
     resetProcessState();
+    setUploadedFile(null);
   };
 
   return (
@@ -162,6 +181,7 @@ const SampleList: React.FC = () => {
                 isMultiEntity={isMultiEntity}
                 setIsMultiEntity={setIsMultiEntity}
                 onProcess={handleViewFullStatement}
+                onUpload={handleFileUpload}
                 isLoading={isLoading}
                 sampleData={sampleData}
               />
