@@ -77,7 +77,7 @@ const SampleSelector: React.FC<SampleSelectorProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto">
         <h5 className="text-xl font-semibold mb-5 text-gray-900 dark:text-white">
-          Financial Statements
+          Financial Statement Validator
         </h5>
 
         {/* Statement Type Selection */}
