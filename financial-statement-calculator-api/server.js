@@ -103,3 +103,23 @@ app.get("/api/health", (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
+
+// Serve static files from the React app build directory
+app.use(
+  express.static(
+    path.join(__dirname, "..", "financial-statement-calculator-app", "build")
+  )
+);
+
+// Handle any requests that don't match the ones above
+app.get("*", (req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "..",
+      "financial-statement-calculator-app",
+      "build",
+      "index.html"
+    )
+  );
+});
