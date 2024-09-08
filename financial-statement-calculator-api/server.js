@@ -110,16 +110,3 @@ app.use(
     path.join(__dirname, "..", "financial-statement-calculator-app", "build")
   )
 );
-
-// Handle any requests that don't match the ones above
-app.get("*", (req, res) => {
-  res.sendFile(
-    path.join(
-      __dirname,
-      "..",
-      "financial-statement-calculator-app",
-      "build",
-      "index.html"
-    )
-  );
-});
